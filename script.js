@@ -16,17 +16,24 @@ function generateID() {
 
 function addTransaction(e) {
   e.preventDefault();
+
+  const type = document.getElementById("type").value;
+  const enteredAmount = Math.abs(+amount.value); // always positive input
+
   const transaction = {
     id: generateID(),
     text: text.value,
-    amount: +amount.value,
+    amount: type === "expense" ? -enteredAmount : enteredAmount,
     category: category.value
   };
+
   transactions.push(transaction);
   updateLocalStorage();
   addTransactionDOM(transaction);
   updateValues();
   drawChart();
+
+  // Clear inputs
   text.value = "";
   amount.value = "";
 }
