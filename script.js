@@ -22,7 +22,7 @@ function addTransaction(e) {
 
   const transaction = {
     id: generateID(),
-    text: text.value,
+    text: "",
     amount: type === "expense" ? -enteredAmount : enteredAmount,
     category: category.value
   };
