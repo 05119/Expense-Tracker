@@ -76,8 +76,8 @@ function exportCSV() {
   transactions.forEach(t => {
     const d = new Date(t.id).toLocaleDateString();
     const type = t.amount >= 0 ? "Income" : "Expense";
-    const desc = t.text || "";
-    csv += `${d},${type},${t.amount},${t.category},${desc}\n`;
+    const desc = t.text || "Description";
+    csv += `${d},${type},${t.amount},${t.category}, ${t.description},${desc}\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv" });
