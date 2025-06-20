@@ -22,7 +22,6 @@ function addTransaction(e) {
 
   const transaction = {
     id: generateID(),
-    text: "",
     amount: type === "expense" ? -enteredAmount : enteredAmount,
     category: category.value
   };
@@ -34,7 +33,6 @@ function addTransaction(e) {
   drawChart();
 
   // Clear inputs
-  text.value = "";
   amount.value = "";
 }
 
@@ -107,8 +105,8 @@ function drawChart() {
     data: {
       labels,
       datasets: [
-        { label: "Income", data: incomes, backgroundColor: "green" },
-        { label: "Expense", data: expenses, backgroundColor: "red" }
+        { label: "Income", data: incomes, backgroundColor: "B2ZC88" },
+        { label: "Expense", data: expenses, backgroundColor: "000000" }
       ]
     },
     options: {
