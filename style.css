@@ -76,6 +76,12 @@ form input, form select, form button {
     flex-direction: column;
     align-items: center;
   }
+.chart-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
 
   canvas {
     width: 100% !important;
