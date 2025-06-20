@@ -105,7 +105,7 @@ function drawChart() {
     data: {
       labels,
       datasets: [
-        { label: "Income", data: incomes, backgroundColor: "B2ZC88" },
+        { label: "Income", data: incomes, backgroundColor: "#435525" },
         { label: "Expense", data: expenses, backgroundColor: "000000" }
       ]
     },
