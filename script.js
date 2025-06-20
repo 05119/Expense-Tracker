@@ -3,11 +3,11 @@ const money_plus = document.getElementById("money-plus");
 const money_minus = document.getElementById("money-minus");
 const list = document.getElementById("list");
 const form = document.getElementById("form");
-const text = document.getElementById("text");
 const amount = document.getElementById("amount");
 const category = document.getElementById("category");
-let chart;
+const yearSelect = document.getElementById("yearSelect");
 
+let chart;
 let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
 
 function generateID() {
@@ -18,12 +18,14 @@ function addTransaction(e) {
   e.preventDefault();
 
   const type = document.getElementById("type").value;
-  const enteredAmount = Math.abs(+amount.value); // always positive input
+  const enteredAmount = Math.abs(+amount.value);
+  const date = new Date();
 
   const transaction = {
     id: generateID(),
     amount: type === "expense" ? -enteredAmount : enteredAmount,
-    category: category.value
+    category: category.value,
+    date: date.toISOString()
   };
 
   transactions.push(transaction);
@@ -32,7 +34,6 @@ function addTransaction(e) {
   updateValues();
   drawChart();
 
-  // Clear inputs
   amount.value = "";
 }
 
@@ -42,7 +43,7 @@ function addTransactionDOM(transaction) {
   item.classList.add(transaction.amount < 0 ? "minus" : "plus");
 
   item.innerHTML = `
-    ${transaction.text} (${transaction.category}) 
+    (${transaction.category}) 
     <span>${sign}$${Math.abs(transaction.amount)}</span>
     <button class="delete-btn" onclick="removeTransaction(${transaction.id})">x</button>
   `;
@@ -55,7 +56,7 @@ function updateValues() {
   const income = amounts.filter(val => val > 0).reduce((a, b) => a + b, 0).toFixed(2);
   const expense = amounts.filter(val => val < 0).reduce((a, b) => a + b, 0).toFixed(2);
 
-  balance.innerText = total;
+  balance.innerText = `$${total}`;
   money_plus.innerText = `+$${income}`;
   money_minus.innerText = `-$${Math.abs(expense)}`;
 }
@@ -71,9 +72,9 @@ function updateLocalStorage() {
 }
 
 function exportCSV() {
-  let csv = "Text,Amount,Category\n";
+  let csv = "Amount,Category,Date\n";
   transactions.forEach(t => {
-    csv += `${t.text},${t.amount},${t.category}\n`;
+    csv += `${t.amount},${t.category},${new Date(t.date).toLocaleDateString()}\n`;
   });
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
@@ -83,35 +84,75 @@ function exportCSV() {
   a.click();
 }
 
+function populateYearSelect() {
+  const years = [...new Set(transactions.map(t => new Date(t.date).getFullYear()))].sort((a, b) => b - a);
+  yearSelect.innerHTML = "";
+  years.forEach(y => {
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = y;
+    yearSelect.appendChild(opt);
+  });
+  if (years.length > 0) {
+    yearSelect.value = years[0];
+  }
+}
+
 function drawChart() {
   const ctx = document.getElementById("expenseChart").getContext("2d");
+
+  const selectedYear = parseInt(yearSelect.value);
   const monthlyData = {};
 
   transactions.forEach(t => {
-    const d = new Date(t.id);
-    const key = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-    if (!monthlyData[key]) monthlyData[key] = { income: 0, expense: 0 };
-    if (t.amount >= 0) monthlyData[key].income += t.amount;
-    else monthlyData[key].expense += Math.abs(t.amount);
+    const d = new Date(t.date);
+    const year = d.getFullYear();
+    if (year === selectedYear) {
+      const key = d.getMonth(); // 0–11
+      if (!monthlyData[key]) monthlyData[key] = { income: 0, expense: 0 };
+      if (t.amount >= 0) monthlyData[key].income += t.amount;
+      else monthlyData[key].expense += Math.abs(t.amount);
+    }
   });
 
-  const labels = Object.keys(monthlyData);
-  const incomes = labels.map(l => monthlyData[l].income);
-  const expenses = labels.map(l => monthlyData[l].expense);
+  const labels = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+
+  const income = labels.map((_, i) => (monthlyData[i]?.income || 0));
+  const expense = labels.map((_, i) => (monthlyData[i]?.expense || 0));
 
   if (chart) chart.destroy();
+
   chart = new Chart(ctx, {
     type: 'bar',
     data: {
       labels,
       datasets: [
-        { label: "Income", data: incomes, backgroundColor: "#435525" },
-        { label: "Expense", data: expenses, backgroundColor: "000000" }
+        {
+          label: "Income",
+          data: income,
+          backgroundColor: "#708238" // Olive Green
+        },
+        {
+          label: "Expense",
+          data: expense,
+          backgroundColor: "#000000" // Black
+        }
       ]
     },
     options: {
       responsive: true,
-      scales: { y: { beginAtZero: true } }
+      plugins: {
+        title: {
+          display: true,
+          text: `Monthly Overview - ${selectedYear}`
+        }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
     }
   });
 }
@@ -120,8 +161,16 @@ function init() {
   list.innerHTML = "";
   transactions.forEach(addTransactionDOM);
   updateValues();
+  populateYearSelect();
   drawChart();
 }
 
-init();
 form.addEventListener("submit", addTransaction);
+yearSelect.addEventListener("change", drawChart);
+
+init();
+
+
+
+  
+ 
