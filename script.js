@@ -72,10 +72,14 @@ function updateLocalStorage() {
 }
 
 function exportCSV() {
-  let csv = "Amount,Category,Date\n";
+  let csv = "Date,Type,Amount,Category,Description\n";
   transactions.forEach(t => {
-    csv += `${t.amount},${t.category},${new Date(t.date).toLocaleDateString()}\n`;
+    const d = new Date(t.id).toLocaleDateString();
+    const type = t.amount >= 0 ? "Income" : "Expense";
+    const desc = t.text || "";
+    csv += `${d},${type},${t.amount},${t.category},${desc}\n`;
   });
+
   const blob = new Blob([csv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -83,6 +87,7 @@ function exportCSV() {
   a.download = "expenses.csv";
   a.click();
 }
+
 
 function populateYearSelect() {
   const years = [...new Set(transactions.map(t => new Date(t.date).getFullYear()))].sort((a, b) => b - a);
